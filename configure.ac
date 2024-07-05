@@ -73,7 +73,7 @@ dnl -- Build system init --
 
 AM_INIT_AUTOMAKE([1.6 foreign])
 AM_MAINTAINER_MODE
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
