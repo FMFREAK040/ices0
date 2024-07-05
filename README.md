@@ -117,6 +117,18 @@ automake --add-missing
 ./configure
 ```
 
+On Ubuntu 24.04LTS you need git and a working automake build environment.
+
+```bash
+git clone https://github.com/FMFREAK040/ices0.git
+cd ices0
+aclocal
+autoreconf -fi
+autoconf
+automake --add-missing
+./configure --with-python=/usr/local/python3 --with-perl=no
+```
+
 Check `configure`'s ouput. Ideally, it should end like this:
 ```
 Features:
