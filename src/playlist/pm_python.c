@@ -1,6 +1,6 @@
 /* playlist_python.c
  * - Interpreter functions for python
- * Copyright (c) 2000 Alexander Hav‰ng
+ * Copyright (c) 2000 Alexander Hav√§ng
  * Copyright (c) 2001-3 Brendan Cully
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * 20240705 Created changes that this should work with python3
  */
 
 #include "definitions.h"
@@ -64,8 +65,8 @@ int ices_playlist_python_initialize(playlist_module_t* pm) {
 		return -1;
 
 	if (pl_init_hook) {
-		if ((res = python_eval(pl_init_hook)) && PyInt_Check(res))
-			rc = PyInt_AsLong(res);
+		if ((res = python_eval(pl_init_hook)) && PyLong_Check(res))
+			rc = PyLong_AsLong(res);
 		else
 			ices_log_error("ices_init failed");
 
@@ -81,8 +82,8 @@ static int playlist_python_get_lineno(void) {
 	int rc = 0;
 
 	if (pl_get_lineno_hook) {
-		if ((res = python_eval(pl_get_lineno_hook)) && PyInt_Check(res))
-			rc = PyInt_AsLong(res);
+		if ((res = python_eval(pl_get_lineno_hook)) && PyLong_Check(res))
+			rc = PyLong_AsLong(res);
 		else
 			ices_log_error("ices_get_lineno failed");
 
@@ -97,8 +98,8 @@ static char *playlist_python_get_next(void) {
 	PyObject* res;
 	char* rc = NULL;
 
-	if ((res = python_eval(pl_get_next_hook)) && PyString_Check(res))
-		rc = ices_util_strdup(PyString_AsString(res));
+	if ((res = python_eval(pl_get_next_hook)) && PyUnicode_Check(res))
+		rc = ices_util_strdup(PyUnicode_AsUTF8(res));
 	else
 		ices_log_error("ices_get_next failed");
 
@@ -112,8 +113,8 @@ static char*playlist_python_get_metadata(void) {
 	char* rc = NULL;
 
 	if (pl_get_metadata_hook) {
-		if ((res = python_eval(pl_get_metadata_hook)) && PyString_Check(res))
-			rc = ices_util_strdup(PyString_AsString(res));
+		if ((res = python_eval(pl_get_metadata_hook)) && PyUnicode_Check(res))
+			rc = ices_util_strdup(PyUnicode_AsUTF8(res));
 		else
 			ices_log_error("ices_get_metadata failed");
 
@@ -145,7 +146,7 @@ static void playlist_python_shutdown(void) {
 	PyObject* res;
 
 	if (pl_shutdown_hook) {
-		if (!((res = python_eval(pl_shutdown_hook)) && PyInt_Check(res)))
+		if (!((res = python_eval(pl_shutdown_hook)) && PyLong_Check(res)))
 			ices_log_error("ices_shutdown failed");
 
 		Py_XDECREF(res);
