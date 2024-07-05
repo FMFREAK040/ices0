@@ -70,4 +70,4 @@ fi
 # _XIPH_PYTHON_CFG(PYTHONPATH, CFGVAR)
 # Ask python in PYTHONPATH for the definition of CFGVAR
 m4_define([_XIPH_PYTHON_CFG],
-  [`$1 -c 'from distutils.sysconfig import get_config_var; print get_config_var("$2")' | sed 's/None//'`])
+  [`$1 -c 'from distutils.sysconfig import get_config_var; print(get_config_var("$2"))' | sed 's/None//'`])
