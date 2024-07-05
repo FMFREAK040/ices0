@@ -68,7 +68,7 @@ That said, ices0 is still a rock-solid tool and often used as an "Auto DJ", even
 On Ubuntu 24.04 these can usually be installed with:
 
 ```bash
-sudo apt libtool
+sudo apt libtool python3-dev
 sudo apt install libxml2-dev libogg-dev libvorbis-dev libshout3-dev
 sudo apt install libmp3lame-dev libflac-dev
 sudo apt install libfaad-dev libmp4v2-dev
