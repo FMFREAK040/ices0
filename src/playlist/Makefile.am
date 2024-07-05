@@ -1,6 +1,6 @@
 ## Process this with automake to create Makefile.in
 
-INCLUDES = -DICES_MODULEDIR=\"$(moddir)\" -I$(top_srcdir)/src
+AM_CPPFLAGS = -DICES_MODULEDIR=\"$(moddir)\" -I$(top_srcdir)/src
 
 noinst_LIBRARIES = libplaylist.a
 noinst_HEADERS = playlist.h pm_builtin.h pm_script.h rand.h
