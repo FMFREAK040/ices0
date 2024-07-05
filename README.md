@@ -65,6 +65,15 @@ That said, ices0 is still a rock-solid tool and often used as an "Auto DJ", even
 * libfaad
 * libmp4v2
 
+On Ubuntu 24.04 these can usually be installed with:
+
+```bash
+sudo apt libtool
+sudo apt install libxml2-dev libogg-dev libvorbis-dev libshout3-dev
+sudo apt install libmp3lame-dev libflac-dev
+sudo apt install libfaad-dev libmp4v2-dev
+```
+
 On Ubuntu 18.04/Linux Mint 19.1, these can usually be installed with:
 
 ```bash
