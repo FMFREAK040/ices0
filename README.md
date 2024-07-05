@@ -126,7 +126,7 @@ aclocal
 autoreconf -fi
 autoconf
 automake --add-missing
-./configure --with-python=/usr/local/python3 --with-perl=no
+./configure --with-python=/usr/bin/python3 --with-perl=no
 ```
 
 Check `configure`'s ouput. Ideally, it should end like this:
