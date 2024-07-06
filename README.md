@@ -1,6 +1,6 @@
 # ices0
 
-This version has Python3 script supprt
+This version has Python3 script supprt (because Python2 is deprecated)
 
 **If you like what you got, please consider to [![Donate with Paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=PBPR63362LDEU). Thank you! ❤️**
 
