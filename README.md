@@ -163,3 +163,29 @@ Before making a pull request, please clean up using
 make maintainer-clean
 ```
 so you won't be pushing unneccessary temp files to GitHub.
+
+When You will use ices0 in a systemd based environment you can create a file in
+```bash
+/usr/lib/systemd/system/ices.service
+```
+with this content
+```bash
+[Unit]
+Description=ices0 Service
+After=icecast2.service
+StartLimitIntervalSec=120
+StartLimitBurst=10
+
+[Service]
+Type=exec
+UMask=177
+ExecStart=/usr/local/bin/ices -c /usr/local/etc/ices.conf
+User=root
+Group=root
+Restart=on-failure
+RestartSec=5
+PIDFile=/var/log/ices/ices.pid
+
+[Install]
+WantedBy=multi-user.target
+```
