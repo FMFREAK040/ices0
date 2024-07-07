@@ -80,48 +80,10 @@ sudo apt install libmp3lame-dev libflac-dev
 sudo apt install libfaad-dev libmp4v2-dev
 ```
 
-On Ubuntu 18.04/Linux Mint 19.1, these can usually be installed with:
-
-```bash
-sudo apt-get install libxml2-dev libogg-dev libvorbis-dev libshout3-dev
-sudo apt-get install libmp3lame-dev libflac-dev
-sudo apt-get install libfaad-dev libmp4v2-dev
-```
-
-For the Python and Perl scripting engines, additional libraries are needed:
-
-```bash
-sudo apt-get install libpython-dev libperl-dev
-```
-
 ## Building
-
-### Building with Homebrew (MacOS X)
-
-Open a terminal and simply enter:
-
-```bash
-brew install Moonbase59/tap/ices0
-```
-
-If you don’t have current versions of _Python2_ and/or _Perl_ on your system and wish to use ices0’s _scripting features_, you can pull the latest versions in using a command like:
-
-```bash
-brew install --with-python2 --with-perl Moonbase59/tap/ices0
-```
 
 ### Building manually
 
-You need git and a working automake build environment.
-
-```bash
-git clone https://github.com/Moonbase59/ices0.git
-cd ices0
-aclocal
-autoreconf -fi
-automake --add-missing
-./configure
-```
 
 On Ubuntu 24.04LTS you need git and a working automake build environment.
 
