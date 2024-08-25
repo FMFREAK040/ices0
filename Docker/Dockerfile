@@ -44,7 +44,6 @@ RUN ./configure --with-python=/usr/bin/python3 --with-perl=no && \
     make && \
     make install
 
-#ENTRYPOINT ["ices", "-c", "/config/ices.conf"]
 FROM debian:bookworm-slim AS ices0
 RUN apt update && \
     apt install -y\
@@ -56,8 +55,5 @@ RUN apt update && \
 COPY rootfs/config/ices.py /usr/local/etc/modules/ices.py
 COPY --from=build /usr/local/bin/ices /usr/local/bin/ices
 COPY rootfs /
-#RUN mkdir -p /usr/local/bin/ices/
-#COPY rootfs/config/ices.py /usr/local/bin/ices/ices.py
-#EXPOSE 8000
 ENTRYPOINT ["ices", "-c", "/config/ices.conf"]
 
