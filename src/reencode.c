@@ -108,6 +108,7 @@ static void process_audio_channels(int16_t *left, int16_t *right, int nsamples) 
  * ========================================================================= */
 
 static lame_global_flags *gfp = NULL;
+static hip_t hip_decoder = NULL; // Native LAME decoder type configuration
 
 void ices_reencode_initialize(void) {
     gfp = lame_init();
@@ -128,6 +129,9 @@ void ices_reencode_initialize(void) {
         return;
     }
 
+    // Initialize the real decoding framework
+    hip_decoder = hip_decode_init();
+
     printf("INFO: Hardware-Style 5-Band Dynamics Master Engine compiled & initialized successfully.\n");
 }
 
@@ -135,15 +139,33 @@ void ices_reencode_reset(input_stream_t* source) {
     (void)source;
     memset(&state_l, 0, sizeof(FilterState));
     memset(&state_r, 0, sizeof(FilterState));
+    
+    if (hip_decoder) {
+        hip_decode_exit(hip_decoder);
+    }
+    hip_decoder = hip_decode_init();
 }
 
-/* * THE FIX: Pure transparent pass-through. 
- * We return '1' to tell the engine that decoding was handled cleanly, 
- * allowing the core app to pipe its native PCM straight to our encoder.
+/* * THE DEFINITIVE FIX: 
+ * We must use hip_decode to actively populate the 'left' and 'right' arrays 
+ * with PCM samples from the incoming MP3 stream data buffer ('buf').
  */
 int ices_reencode_decode(unsigned char* buf, size_t blen, size_t olen, int16_t* left, int16_t* right) {
-    (void)buf; (void)blen; (void)olen; (void)left; (void)right;
-    return 1; 
+    if (!hip_decoder) {
+        return -1;
+    }
+
+    // Decode the data packet into our processing channels
+    int samples_decoded = hip_decode(hip_decoder, buf, blen, left, right);
+    
+    // If LAME needs more data or hits a header, it returns 0. 
+    // We pass that back safely so the engine knows to supply more blocks.
+    if (samples_decoded < 0) {
+        return 0;
+    }
+
+    (void)olen;
+    return samples_decoded; 
 }
 
 int ices_reencode(ices_stream_t* stream, int nsamples, int16_t* left, int16_t* right, unsigned char* outbuf, int outbuf_sz) {
@@ -152,9 +174,10 @@ int ices_reencode(ices_stream_t* stream, int nsamples, int16_t* left, int16_t* r
     }
     (void)stream; 
 
-    // Intercept the native PCM stream right here and apply the 5-band matrix!
+    // Apply our 5-Band Audio Processing directly to the newly decoded channel blocks!
     process_audio_channels(left, right, nsamples);
 
+    // Encode the processed audio back to stream format
     int bytes_encoded = lame_encode_buffer(gfp, left, right, nsamples, outbuf, outbuf_sz);
     if (bytes_encoded < 0) {
         fprintf(stderr, "WARNING: LAME non-interleaved encoding execution anomaly detected: %d\n", bytes_encoded);
@@ -173,6 +196,10 @@ int ices_reencode_flush(ices_stream_t* stream, unsigned char *outbuf, int outbuf
 }
 
 void ices_reencode_shutdown(void) {
+    if (hip_decoder) {
+        hip_decode_exit(hip_decoder);
+        hip_decoder = NULL;
+    }
     if (gfp != NULL) {
         lame_close(gfp);
         gfp = NULL;
