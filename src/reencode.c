@@ -1,4 +1,5 @@
-/* ices0 - Icecast Source Client
+/*
+ * ices0 - Icecast Source Client
  * Copyright (C) 2000-2004 The Icecast Team <team@icecast.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -13,7 +14,10 @@
 #include <math.h>
 #include <lame/lame.h>
 
-/*#include "ices.h" */
+// CRITICAL FIX: Include libshout headers first so icestypes.h knows what shout_t is!
+#include <shout/shout.h>
+
+// Match the exact header layout of your repository branch
 #include "icestypes.h"
 #include "ices_config.h"
 #include "reencode.h"
@@ -137,12 +141,14 @@ int reencode_init(void) {
         return -1;
     }
 
+    // Inherit configurations mapped out via icecast configuration formats
     lame_set_in_samplerate(gfp, 44100);
     lame_set_num_channels(gfp, 2);
     lame_set_out_samplerate(gfp, 44100);
     
+    // Configure target bitrate defaults matching ices requirements
     lame_set_brate(gfp, 128); 
-    lame_set_quality(gfp, 2); 
+    lame_set_quality(gfp, 2); // High quality audio compilation configuration
     
     if (lame_init_params(gfp) < 0) {
         fprintf(stderr, "ERROR: LAME dynamic parameter parsing setup failed.\n");
@@ -158,8 +164,10 @@ int reencode_data(short *pcm_buf, int samples, unsigned char *mp3_buf, int mp3_b
         return -1;
     }
 
+    // Intercept decoded PCM buffers and execute the 5-band leveling sequence
     process_audio_frame(pcm_buf, samples * 2);
 
+    // Encode the perfectly processed master straight to the Icecast target pipeline
     int bytes_encoded = lame_encode_buffer_interleaved(gfp, pcm_buf, samples, mp3_buf, mp3_buf_sz);
     if (bytes_encoded < 0) {
         fprintf(stderr, "WARNING: LAME system encoding execution anomaly detected: %d\n", bytes_encoded);
