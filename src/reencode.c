@@ -26,7 +26,6 @@
  * PROFESSIONAL 5-BAND MULTIBAND DYNAMIC BROADCAST PROCESSOR
  * ========================================================================= */
 
-// Crossover cutoffs normalized to 44.1kHz sample rate
 #define FREQ_BAND_1 (100.0 / 44100.0)
 #define FREQ_BAND_2 (400.0 / 44100.0)
 #define FREQ_BAND_3 (1500.0 / 44100.0)
@@ -41,7 +40,6 @@ typedef struct {
 
 static FilterState state_l = {0}, state_r = {0};
 
-// Target densities for a uniform radio master profile
 static const double target_energy[5] = {0.16, 0.18, 0.15, 0.12, 0.09};
 static double dynamic_gains[5] = {1.0, 1.0, 1.0, 1.0, 1.0};
 
@@ -69,7 +67,6 @@ static void split_5_bands(double input, FilterState *state, double *bands) {
     bands[4] = input - lp4;         
 }
 
-/* Modifies the discrete left and right sample channels directly */
 static void process_audio_channels(int16_t *left, int16_t *right, int nsamples) {
     double bands_l[5], bands_r[5];
 
@@ -112,7 +109,6 @@ static void process_audio_channels(int16_t *left, int16_t *right, int nsamples) 
 
 static lame_global_flags *gfp = NULL;
 
-/* 1. Matches type: void ices_reencode_initialize(void) */
 void ices_reencode_initialize(void) {
     gfp = lame_init();
     if (gfp == NULL) {
@@ -135,40 +131,38 @@ void ices_reencode_initialize(void) {
     printf("INFO: Hardware-Style 5-Band Dynamics Master Engine compiled & initialized successfully.\n");
 }
 
-/* 2. Matches type: void ices_reencode_reset(input_stream_t* source) */
 void ices_reencode_reset(input_stream_t* source) {
-    (void)source; // Keep compiler from throwing an unused argument warning
+    (void)source;
     memset(&state_l, 0, sizeof(FilterState));
     memset(&state_r, 0, sizeof(FilterState));
 }
 
-/* 3. Matches type: int ices_reencode_decode(...) */
 int ices_reencode_decode(unsigned char* buf, size_t blen, size_t olen, int16_t* left, int16_t* right) {
-    // This is simply a passthrough wrapper for decoding processing logic if called inside mp3.c
     (void)buf; (void)blen; (void)olen; (void)left; (void)right;
     return 0; 
 }
 
-/* 4. Matches type: int ices_reencode(ices_stream_t*, int, int16_t*, int16_t*, unsigned char*, int) */
 int ices_reencode(ices_stream_t* stream, int nsamples, int16_t* left, int16_t* right, unsigned char* outbuf, int outbuf_sz) {
     if (gfp == NULL) {
         return -1;
     }
     (void)stream; 
 
-    // Intercept separate left & right PCM data arrays and apply our automatic radio processing
+    // Run our AGC / 5-band Equalizer
     process_audio_channels(left, right, nsamples);
 
-    // Encode standard non-interleaved discrete left and right channels to MP3 outbuf stream
+    // CRITICAL FIX: Pass 'nsamples' directly without doubling it!
     int bytes_encoded = lame_encode_buffer(gfp, left, right, nsamples, outbuf, outbuf_sz);
+    
     if (bytes_encoded < 0) {
         fprintf(stderr, "WARNING: LAME non-interleaved encoding execution anomaly detected: %d\n", bytes_encoded);
+        // Fallback safety to prevent stream stalling or hard loops if a frame fails
+        return 0; 
     }
 
     return bytes_encoded;
 }
 
-/* 5. Matches type: int ices_reencode_flush(ices_stream_t*, unsigned char*, int) */
 int ices_reencode_flush(ices_stream_t* stream, unsigned char *outbuf, int outbuf_sz) {
     if (gfp == NULL) {
         return -1;
@@ -177,7 +171,6 @@ int ices_reencode_flush(ices_stream_t* stream, unsigned char *outbuf, int outbuf
     return lame_encode_flush(gfp, outbuf, outbuf_sz);
 }
 
-/* 6. Shutdown engine hook */
 void ices_reencode_shutdown(void) {
     if (gfp != NULL) {
         lame_close(gfp);
