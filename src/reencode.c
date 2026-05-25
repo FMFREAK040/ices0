@@ -14,8 +14,9 @@
 #include <lame/lame.h>
 
 /*#include "ices.h" */
+#include "icestypes.h"
+#include "ices_config.h"
 #include "reencode.h"
-#include "log.h"
 
 /* =========================================================================
  * PROFESSIONAL 5-BAND MULTIBAND DYNAMIC BROADCAST PROCESSOR
@@ -132,25 +133,23 @@ static lame_global_flags *gfp = NULL;
 int reencode_init(void) {
     gfp = lame_init();
     if (gfp == NULL) {
-        LOG_ERROR0("Failed to initialize LAME encoder engine library context.");
+        fprintf(stderr, "ERROR: Failed to initialize LAME encoder engine library context.\n");
         return -1;
     }
 
-    // Inherit configurations mapped out via icecast XML configuration formats
     lame_set_in_samplerate(gfp, 44100);
     lame_set_num_channels(gfp, 2);
     lame_set_out_samplerate(gfp, 44100);
     
-    // Configure target bitrate defaults matching ices requirements
     lame_set_brate(gfp, 128); 
-    lame_set_quality(gfp, 2); // High quality audio compilation configuration
+    lame_set_quality(gfp, 2); 
     
     if (lame_init_params(gfp) < 0) {
-        LOG_ERROR0("LAME dynamic parameter parsing setup failed.");
+        fprintf(stderr, "ERROR: LAME dynamic parameter parsing setup failed.\n");
         return -1;
     }
 
-    LOG_INFO0("Hardware-Style 5-Band Dynamics Master Engine compiled & initialized successfully.");
+    printf("INFO: Hardware-Style 5-Band Dynamics Master Engine compiled & initialized successfully.\n");
     return 0;
 }
 
@@ -159,13 +158,11 @@ int reencode_data(short *pcm_buf, int samples, unsigned char *mp3_buf, int mp3_b
         return -1;
     }
 
-    // Intercept decoded PCM buffers and execute the 5-band leveling sequence
     process_audio_frame(pcm_buf, samples * 2);
 
-    // Encode the perfectly processed master straight to the Icecast target pipeline
     int bytes_encoded = lame_encode_buffer_interleaved(gfp, pcm_buf, samples, mp3_buf, mp3_buf_sz);
     if (bytes_encoded < 0) {
-        LOG_ERROR1("LAME system encoding execution anomaly detected: %d", bytes_encoded);
+        fprintf(stderr, "WARNING: LAME system encoding execution anomaly detected: %d\n", bytes_encoded);
     }
 
     return bytes_encoded;
