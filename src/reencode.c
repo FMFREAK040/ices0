@@ -224,10 +224,27 @@ static int absorb_stream_config(ices_stream_t *stream) {
 }
 
 void ices_reencode_initialize(void) {
-    /* Don't try to init LAME here — we don't know the output format yet
-     * (it arrives via the ices_stream_t on the first ices_reencode call,
-     * not via initialize). Just bring up the decoder and the leveller.
-     * LAME is brought up lazily once we have the real numbers. */
+    extern ices_config_t ices_config;
+    ices_stream_t *stream;
+
+    /* CRITICAL: propagate per-stream reencode flag to the global config flag.
+     * stream.c gates the entire reencode path on config->reencode; without
+     * this loop, <Reencode>1</Reencode> in ices.conf does nothing because
+     * the XML parser only sets stream->reencode, not config->reencode. */
+    for (stream = ices_config.streams; stream; stream = stream->next) {
+        if (stream->reencode) {
+            ices_config.reencode = 1;
+            break;
+        }
+    }
+    if (!ices_config.reencode) {
+        LOG("no <Stream> has <Reencode>1</Reencode>; reencoder disabled");
+        return;
+    }
+
+    /* Don't init LAME here — we don't know the output format yet (it
+     * arrives via the ices_stream_t on the first ices_reencode call).
+     * LAME is brought up lazily then. Just bring up decoder + leveller. */
     if (hip_decoder) hip_decode_exit(hip_decoder);
     hip_decoder = hip_decode_init();
     if (!hip_decoder) LOG("hip_decode_init() failed");
