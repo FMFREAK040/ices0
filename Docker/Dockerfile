@@ -35,6 +35,8 @@ RUN apt update && \
         
 WORKDIR /
 RUN git clone https://github.com/FMFREAK040/ices0.git
+#RUN git clone https://github.com/FMFREAK040/ices0.git
+RUN git clone --depth 1 --branch icesequalize --single-branch https://github.com/FMFREAK040/ices0.git
 WORKDIR /ices0
 RUN aclocal && \
     autoreconf -fi && \
